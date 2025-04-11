@@ -1,0 +1,5 @@
+<form method="post" action="{% url 'add_security_to_watchlist' watchlist.id %}">
+    {% csrf_token %}
+    <input type="hidden" name="security_id" value="{{ security.id }}">
+    <button type="submit">Add to Watchlist</button>
+</form> 

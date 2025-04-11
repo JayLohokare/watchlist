@@ -1,0 +1,15 @@
+@keyframes priceFlashGreen {
+  0% {
+    color: inherit;
+  }
+  50% {
+    color: #00c853;
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+.price-flash {
+  animation: priceFlashGreen 0.6s ease;
+} 

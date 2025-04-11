@@ -1,0 +1,201 @@
+.watchlist-panel {
+  width: 100%;
+}
+
+.watchlist-actions {
+  margin-bottom: 15px;
+}
+
+.create-watchlist-btn {
+  background-color: #0066FF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.create-watchlist-btn:hover {
+  background-color: #0055CC;
+}
+
+.watchlist-form {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.form-group textarea {
+  height: 80px;
+  resize: vertical;
+}
+
+.submit-btn {
+  background-color: #0066FF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #0055CC;
+}
+
+.watchlists-accordion {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.watchlist-item {
+  margin-bottom: 1px;
+}
+
+.watchlist-header {
+  background-color: #f5f5f5;
+  padding: 12px 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.watchlist-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.toggle-icon {
+  font-size: 12px;
+}
+
+.watchlist-content {
+  padding: 15px;
+  background-color: #fff;
+  border-top: 1px solid #ddd;
+}
+
+.watchlist-description {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #666;
+  font-style: italic;
+}
+
+.watchlist-securities-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.watchlist-securities-table th,
+.watchlist-securities-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.watchlist-securities-table th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.remove-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.remove-button:hover {
+  background-color: #d32f2f;
+}
+
+.no-watchlists,
+.empty-watchlist {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.message {
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.message.success {
+  background-color: #dff0d8;
+  color: #3c763d;
+  border: 1px solid #d6e9c6;
+}
+
+.message.error {
+  background-color: #f2dede;
+  color: #a94442;
+  border: 1px solid #ebccd1;
+}
+
+.watchlist-actions-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.delete-watchlist-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.delete-watchlist-btn:hover {
+  background-color: #d32f2f;
+}
+
+.delete-watchlist-btn.confirm {
+  background-color: #d32f2f;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+} 

@@ -1,0 +1,127 @@
+.app {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  width: 100%;
+  height: 80px;
+  background: #0066FF;
+  color: #FFF;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+}
+
+.login-form {
+  position: fixed;
+  top: 30vh;
+  left: 50vw;
+  transform: translateX(-50%);
+  background: #FFF;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 20px;
+  width: 300px;
+}
+
+.login-form .inputs * {
+  display: block;
+  margin: 10px 0;
+  width: 100%;
+}
+.login-form input {
+  padding: 8px;
+  border-width: 1px;
+  border-radius: 4px;
+  transition-duration: 200ms;
+}
+.login-form button {
+  background: #0066FF;
+  color: #FFF;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 0;
+  cursor: pointer;
+  transition-duration: 200ms;
+}
+.login-form button:hover {
+  background: #0044CC;
+}
+
+.user {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.user button {
+  background: #FFF;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition-duration: 200ms;
+}
+
+.content-container {
+  padding: 20px;
+  overflow-y: auto;
+  height: calc(100% - 80px);
+}
+
+.watchlist-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.securities-panel, 
+.watchlists-panel {
+  flex: 1;
+  min-width: 300px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+.securities-panel h2,
+.watchlists-panel h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+.error-message {
+  background-color: #f2dede;
+  color: #a94442;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .watchlist-container {
+    flex-direction: column;
+  }
+  
+  .securities-panel, 
+  .watchlists-panel {
+    width: 100%;
+  }
+}
