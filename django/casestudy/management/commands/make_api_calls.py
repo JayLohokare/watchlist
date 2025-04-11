@@ -81,7 +81,7 @@ class Command(BaseCommand):
                 self.make_api_call()
                 calls_made += 1
                 
-                self.stdout.write(f'Call {calls_made} completed at {datetime.now()}')
+                # self.stdout.write(f'Call {calls_made} completed at {datetime.now()}')
                 time.sleep(interval)
 
         except KeyboardInterrupt:
@@ -136,13 +136,13 @@ class Command(BaseCommand):
 
     def write_to_file(self, tickers_data, prices_data, timestamp):
         """Write data to output file"""
-        self.stdout.write(f'Writing to {self.OUTPUT_FILE}')
+        # self.stdout.write(f'Writing to {self.OUTPUT_FILE}')
         with open(self.OUTPUT_FILE, 'a') as f:
             f.write(f'\n--- {timestamp} ---\n')
             f.write(f'Tickers: {tickers_data}\n')
             f.write(f'Prices: {prices_data}\n')
         
-        self.stdout.write(f'Successfully wrote data to {self.OUTPUT_FILE}')
+        # self.stdout.write(f'Successfully wrote data to {self.OUTPUT_FILE}')
 
     def write_to_redis(self, tickers_data, prices_data, timestamp):
         """Write data to Redis and publish updates for changed prices"""
@@ -179,7 +179,7 @@ class Command(BaseCommand):
                     )
 
                     if AUTO_UPDATE_PRICES:
-                        price = price + 1
+                        price = current_price + 1
                     
                     # Publish update if price changed
                     if current_price is None or current_price != price or ALLOW_SAME_PRICE:
@@ -189,7 +189,7 @@ class Command(BaseCommand):
                             "timestamp": current_time
                         }))
             
-            self.stdout.write(self.style.SUCCESS('Successfully wrote data to Redis'))
+            # self.stdout.write(self.style.SUCCESS('Successfully wrote data to Redis'))
         except Exception as e:
             logger.error(f'Failed to write to Redis: {str(e)}')
             self.stdout.write(self.style.ERROR(f'Failed to write to Redis: {str(e)}'))
@@ -228,7 +228,7 @@ class Command(BaseCommand):
                         }
                     )
                 
-            self.stdout.write(self.style.SUCCESS('Successfully wrote data to database'))
+            # self.stdout.write(self.style.SUCCESS('Successfully wrote data to database'))
         except Exception as e:
             logger.error(f'Failed to write to database: {str(e)}')
             self.stdout.write(self.style.ERROR(f'Failed to write to database: {str(e)}'))

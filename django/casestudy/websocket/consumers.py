@@ -42,7 +42,7 @@ async def initialize_redis():
         
         # Wait for the message
         async for message in pubsub.listen():
-            print(f"Test message received: {message}")
+            # print(f"Test message received: {message}")
             if message['type'] == 'message':
                 # Unsubscribe after receiving the test message
                 await pubsub.unsubscribe(test_channel)
@@ -54,7 +54,7 @@ async def initialize_redis():
 async def listen_for_updates():
     """Global listener for all Redis updates"""
     try:
-        logger.info("Starting global Redis listener")
+        # logger.info("Starting global Redis listener")
 
         # First subscribe to channels before listening
         # if subscribed_securities:
@@ -65,7 +65,7 @@ async def listen_for_updates():
         await pubsub.psubscribe("stock:price:*")
         
         async for message in pubsub.listen():
-            logger.debug(f"Received Redis message: {message}")
+            # logger.debug(f"Received Redis message: {message}")
             
             if message['type'] == 'message':
                 # Extract ticker from channel name (stock:price:AAPL -> AAPL)
@@ -77,7 +77,7 @@ async def listen_for_updates():
                     message_data = json.loads(message['data'].decode('utf-8'))
                     price = message_data.get('price')
                     
-                    logger.debug(f"consumer Processing price update for {ticker}: {price}")
+                    # logger.debug(f"consumer Processing price update for {ticker}: {price}")
                     
                     # Send update to all consumers subscribed to this ticker
                     if ticker in security_subscribers and price is not None:
@@ -88,7 +88,7 @@ async def listen_for_updates():
                                     'ticker': ticker,
                                     'price': price
                                 }))
-                                logger.debug(f"Sent update to consumer {channel_name} for {ticker}: {price}")
+                                # logger.debug(f"Sent update to consumer {channel_name} for {ticker}: {price}")
                 except Exception as e:
                     logger.error(f"Error processing message for {ticker}: {str(e)}")
                     # Continue processing other messages
@@ -109,7 +109,7 @@ async def subscribe_to_ticker(ticker):
         channel = f"stock:price:{ticker}"
         await pubsub.subscribe(channel)
         subscribed_securities.add(ticker)
-        logger.info(f"Subscribed to Redis channel: {channel}")
+        # logger.info(f"Subscribed to Redis channel: {channel}")
 
 async def unsubscribe_from_ticker(ticker):
     """Unsubscribe from a ticker at the Redis level if no consumers are subscribed"""
@@ -129,7 +129,7 @@ class SecurityConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         # Accept the connection
         await self.accept()
-        logger.info(f"WebSocket connection established for user: {self.scope['user']}")
+        # logger.info(f"WebSocket connection established for user: {self.scope['user']}")
         
         try:
             # Initialize the shared Redis connection if needed
@@ -151,7 +151,7 @@ class SecurityConsumer(AsyncWebsocketConsumer):
             await self.close(code=1011)  # Internal error
                 
     async def disconnect(self, close_code):
-        logger.info(f"WebSocket disconnected with code: {close_code}")
+        # logger.info(f"WebSocket disconnected with code: {close_code}")
         
         # Cancel heartbeat task if it exists
         if hasattr(self, 'heartbeat_task') and self.heartbeat_task:
@@ -174,7 +174,7 @@ class SecurityConsumer(AsyncWebsocketConsumer):
             data = json.loads(text_data)
             action = data.get('action')
             
-            logger.debug(f"Received WebSocket message: {data}")
+            # logger.debug(f"Received WebSocket message: {data}")
             
             if action == 'subscribe':
                 securities = data.get('securities', [])
@@ -196,7 +196,7 @@ class SecurityConsumer(AsyncWebsocketConsumer):
             }))
             
     async def subscribe_to_securities(self, securities):
-        logger.info(f"Subscribing to securities: {securities}")
+        # logger.info(f"Subscribing to securities: {securities}")
         
         # Add securities to the set of subscribed securities
         new_securities = set(securities) - self.subscribed_securities
@@ -214,9 +214,9 @@ class SecurityConsumer(AsyncWebsocketConsumer):
             # Send current price for this security
             try:
                 # Add debug logging
-                logger.debug(f"Fetching initial price for {ticker}")
+                # logger.debug(f"Fetching initial price for {ticker}")
                 price_data = await redis_client.hgetall(f"stock:price:{ticker}")
-                logger.debug(f"Price data for {ticker}: {price_data}")
+                # logger.debug(f"Price data for {ticker}: {price_data}")
                 
                 if price_data and b'value' in price_data:
                     price = price_data[b'value'].decode('utf-8')
@@ -224,12 +224,12 @@ class SecurityConsumer(AsyncWebsocketConsumer):
                         'ticker': ticker,
                         'price': price
                     }))
-                    logger.debug(f"Sent initial price for {ticker}: {price}")
+                    # logger.debug(f"Sent initial price for {ticker}: {price}")
             except Exception as e:
                 logger.error(f"Error sending initial price for {ticker}: {str(e)}")
                 
     async def unsubscribe_from_securities(self, securities):
-        logger.info(f"Unsubscribing from securities: {securities}")
+        # logger.info(f"Unsubscribing from securities: {securities}")
         
         # Remove securities from the set of subscribed securities
         securities_to_remove = set(securities) & self.subscribed_securities
