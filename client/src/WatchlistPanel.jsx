@@ -210,7 +210,7 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
                     {activeWatchlist === watchlist.id ? '▼' : '▶'}
                   </span>
                   <button 
-                    className="delete-button"
+                    className={`delete-watchlist-btn ${confirmDelete === watchlist.id ? 'confirm' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteWatchlist(watchlist.id);
