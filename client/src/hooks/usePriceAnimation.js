@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 export function usePriceAnimation(securities) {
   const [flashingPrices, setFlashingPrices] = useState({});
   const prevSecuritiesRef = useRef({});
+  const timeoutsRef = useRef({});
   
   // Memoize the security map update
   const updatePrevSecuritiesRef = useCallback(() => {
@@ -32,17 +33,36 @@ export function usePriceAnimation(securities) {
     });
     
     if (hasChanges) {
-      setFlashingPrices(newFlashingState);
+      // Merge with existing flashing prices instead of replacing
+      setFlashingPrices(prev => {
+        const merged = { ...prev, ...newFlashingState };
+        return merged;
+      });
       
-      // Remove flash after animation completes
-      const timer = setTimeout(() => {
-        setFlashingPrices({});
-      }, 600);
+      // Clear any existing timeouts for these securities
+      Object.keys(newFlashingState).forEach(securityId => {
+        if (timeoutsRef.current[securityId]) {
+          clearTimeout(timeoutsRef.current[securityId]);
+        }
+        
+        // Set individual timeouts for each security
+        timeoutsRef.current[securityId] = setTimeout(() => {
+          setFlashingPrices(prev => {
+            const updated = { ...prev };
+            delete updated[securityId];
+            return updated;
+          });
+          delete timeoutsRef.current[securityId];
+        }, 600);
+      });
       
       // Update previous securities reference
       updatePrevSecuritiesRef();
       
-      return () => clearTimeout(timer);
+      return () => {
+        // Clear all timeouts on unmount
+        Object.values(timeoutsRef.current).forEach(timeout => clearTimeout(timeout));
+      };
     } else {
       // Only update the reference if it's the first render or if needed
       if (Object.keys(prevSecuritiesRef.current).length === 0) {

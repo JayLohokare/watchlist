@@ -5,7 +5,8 @@ import { useSecurities } from './store/SecuritiesStore';
 import { usePriceAnimation } from './hooks/usePriceAnimation';
 
 export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, onCreateWatchlist, onDeleteWatchlist }) {
-  const [activeWatchlist, setActiveWatchlist] = useState(null);
+  // Replace single activeWatchlist with a Set to track multiple expanded watchlists
+  const [expandedWatchlists, setExpandedWatchlists] = useState(new Set());
   const [newWatchlistName, setNewWatchlistName] = useState('');
   const [newWatchlistDesc, setNewWatchlistDesc] = useState('');
   const [message, setMessage] = useState(null);
@@ -56,7 +57,12 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
       
       if (success) {
         setMessage({ type: 'success', text: 'Watchlist deleted successfully' });
-        setActiveWatchlist(null);
+        // Remove from expanded set if it was expanded
+        setExpandedWatchlists(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(watchlistToDelete.id);
+          return newSet;
+        });
       } else {
         setMessage({ type: 'error', text: 'Failed to delete watchlist' });
       }
@@ -66,8 +72,17 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
     }
   };
 
+  // Modified to toggle a watchlist's expanded state
   const toggleWatchlist = (watchlistId) => {
-    setActiveWatchlist(activeWatchlist === watchlistId ? null : watchlistId);
+    setExpandedWatchlists(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(watchlistId)) {
+        newSet.delete(watchlistId);
+      } else {
+        newSet.add(watchlistId);
+      }
+      return newSet;
+    });
   };
 
   // Find security details by ID
@@ -160,12 +175,12 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
                 <h3>{watchlist.name}</h3>
                 <div className="watchlist-actions">
                   <span className="toggle-icon">
-                    {activeWatchlist === watchlist.id ? '▼' : '▶'}
+                    {expandedWatchlists.has(watchlist.id) ? '▼' : '▶'}
                   </span>
                 </div>
               </div>
               
-              {activeWatchlist === watchlist.id && (
+              {expandedWatchlists.has(watchlist.id) && (
                 <div className="watchlist-content">
                   {watchlist.description && (
                     <p className="watchlist-description">{watchlist.description}</p>
