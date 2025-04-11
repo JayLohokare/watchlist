@@ -76,7 +76,7 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
   };
 
   useEffect(() => {
-    console.log('Securities updated in WatchlistPanel:', securities);
+    // console.log('Securities updated in WatchlistPanel:', securities);
   }, [securities]);
 
   return (

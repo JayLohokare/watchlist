@@ -35,7 +35,7 @@ class WebSocketService {
         this.socket = new WebSocket(`ws://localhost:8001/ws/securities/?token=${userId}`);
 
         this.socket.onopen = () => {
-          console.log('WebSocket connection established');
+          // console.log('WebSocket connection established');
           this.isConnected = true;
           this.reconnectAttempts = 0;
           
@@ -52,7 +52,7 @@ class WebSocketService {
 
         this.socket.onclose = (event) => {
           this.isConnected = false;
-          console.log('WebSocket connection closed:', event.code, event.reason);
+          // console.log('WebSocket connection closed:', event.code, event.reason);
           
           // Reject the connection promise if it's still pending
           if (this.connectionPromise) {
@@ -64,7 +64,7 @@ class WebSocketService {
           if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectTimeout = setTimeout(() => {
               this.reconnectAttempts++;
-              console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+              // console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
               this.connect(userId);
             }, 3000 * Math.pow(2, this.reconnectAttempts)); // Exponential backoff
           }
@@ -131,7 +131,7 @@ class WebSocketService {
     if (!this.isConnected || !this.socket) {
       // Add to pending subscriptions
       newTickers.forEach(ticker => this.pendingSubscriptions.add(ticker));
-      console.log(`WebSocket not connected. Added to pending subscriptions: ${newTickers}`);
+      // console.log(`WebSocket not connected. Added to pending subscriptions: ${newTickers}`);
       return false;
     }
 
@@ -194,29 +194,29 @@ class WebSocketService {
   }
 
   addGlobalMessageHandler(handler) {
-    console.log('Adding global message handler', typeof handler);
+    // console.log('Adding global message handler', typeof handler);
     if (typeof handler !== 'function') {
       console.error('Handler must be a function, received:', handler);
       return;
     }
     this.globalMessageHandlers.push(handler);
-    console.log(`Global handlers count: ${this.globalMessageHandlers.length}`);
+    // console.log(`Global handlers count: ${this.globalMessageHandlers.length}`);
   }
 
   removeGlobalMessageHandler(handler) {
     if (!this.globalMessageHandlers) return;
     
     this.globalMessageHandlers = this.globalMessageHandlers.filter(h => h !== handler);
-    console.log('Global handler removed, remaining:', this.globalMessageHandlers.length);
+    // console.log('Global handler removed, remaining:', this.globalMessageHandlers.length);
   }
 
   removeAllGlobalMessageHandlers() {
-    console.log('Removing all global message handlers');
+    // console.log('Removing all global message handlers');
     this.globalMessageHandlers = [];
   }
 
   handleMessage(event) {
-    console.log('🔵 Raw WebSocket event received:', event.data);
+    // console.log('🔵 Raw WebSocket event received:', event.data);
     try {
       const data = JSON.parse(event.data);
       // console.log('🔵 WebSocket message received:', data);
@@ -238,7 +238,7 @@ class WebSocketService {
         if (Array.isArray(this.globalMessageHandlers)) {
           this.globalMessageHandlers.forEach((handler, index) => {
             try {
-              console.log(`🔵 Calling global handler #${index} for ${data.ticker}`);
+              // console.log(`🔵 Calling global handler #${index} for ${data.ticker}`);
               handler(data.ticker, data.price);
             } catch (handlerError) {
               console.error(`❌ Error in global handler #${index}:`, handlerError);
@@ -250,7 +250,7 @@ class WebSocketService {
         
         // Call specific ticker handlers if any
         if (this.messageHandlers[data.ticker]) {
-          console.log(`🔵 Calling ${this.messageHandlers[data.ticker].length} specific handlers for ${data.ticker}`);
+          // console.log(`🔵 Calling ${this.messageHandlers[data.ticker].length} specific handlers for ${data.ticker}`);
           this.messageHandlers[data.ticker].forEach(handler => {
             try {
               handler(data.price);

@@ -62,7 +62,7 @@ export function SecuritiesProvider({ children }) {
   
   // Update a single security price (used by WebSocket updates)
   const updateSecurityPrice = useCallback((ticker, price) => {
-    console.log(`🟠 Updating price for ${ticker} to $${price}`);
+    // console.log(`🟠 Updating price for ${ticker} to $${price}`);
     
     if (!ticker || price === undefined) {
       console.error('❌ Invalid ticker or price:', ticker, price);
@@ -116,7 +116,7 @@ export function SecuritiesProvider({ children }) {
     });
     
     setLastUpdated(new Date());
-    console.log(`🟠 Last updated timestamp set to: ${new Date().toISOString()}`);
+    // console.log(`🟠 Last updated timestamp set to: ${new Date().toISOString()}`);
   }, []);
   
   // Connect to WebSocket and set up handlers
@@ -125,14 +125,14 @@ export function SecuritiesProvider({ children }) {
     
     // If already connected for this user, don't reconnect
     if (isWebSocketConnected && connectedUserIdRef.current === userId) {
-      console.log('🟢 Already connected to WebSocket for this user');
-      console.log('🟢 Current global handlers count:', webSocketService.globalMessageHandlers.length);
+      // console.log('🟢 Already connected to WebSocket for this user');
+      // console.log('🟢 Current global handlers count:', webSocketService.globalMessageHandlers.length);
       return () => {};
     }
     
     try {
       // Clear any existing handlers first
-      console.log('🟢 Removing any existing global handlers');
+      // console.log('🟢 Removing any existing global handlers');
       webSocketService.removeAllGlobalMessageHandlers();
       
       // Connect to WebSocket
