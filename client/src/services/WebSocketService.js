@@ -2,7 +2,7 @@ class WebSocketService {
   constructor() {
     this.socket = null;
     this.isConnected = false;
-    this.messageHandlers = [];
+    this.messageHandlers = {};
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.reconnectTimeout = null;
@@ -26,8 +26,19 @@ class WebSocketService {
       console.log('WebSocket message received:', event.data);
       try {
         const data = JSON.parse(event.data);
-        // Notify all handlers
-        this.messageHandlers.forEach(handler => handler(data));
+        const ticker = data.ticker;
+        const price = data.price;
+        
+        // Call handlers for this specific ticker
+        if (ticker && this.messageHandlers[ticker]) {
+          this.messageHandlers[ticker].forEach(handler => {
+            try {
+              handler(ticker, price);
+            } catch (handlerError) {
+              console.error('Error in message handler:', handlerError);
+            }
+          });
+        }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
       }
@@ -94,12 +105,15 @@ class WebSocketService {
     return true;
   }
 
-  addMessageHandler(handler) {
-    this.messageHandlers.push(handler);
+  addMessageHandler(ticker, handler) {
+    if (!this.messageHandlers[ticker]) {
+      this.messageHandlers[ticker] = [];
+    }
+    this.messageHandlers[ticker].push(handler);
   }
 
-  removeMessageHandler(handler) {
-    this.messageHandlers = this.messageHandlers.filter(h => h !== handler);
+  removeMessageHandler(ticker) {
+    delete this.messageHandlers[ticker];
   }
 }
 

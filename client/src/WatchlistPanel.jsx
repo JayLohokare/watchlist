@@ -8,7 +8,7 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
   const [newWatchlistDesc, setNewWatchlistDesc] = useState('');
   const [message, setMessage] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [watchlistToDelete, setWatchlistToDelete] = useState(null);
   const [flashingPrices, setFlashingPrices] = useState({});
   const [subscribedTickers, setSubscribedTickers] = useState(new Set());
   
@@ -62,25 +62,33 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
       const newTickers = [...allWatchlistSecurities];
       const currentTickers = [...subscribedTickers];
       
-      // Find tickers to subscribe to (in new list but not in current subscriptions)
-      const tickersToSubscribe = newTickers.filter(ticker => !subscribedTickers.has(ticker));
+      // Check if the subscriptions have actually changed
+      const hasChanges = 
+        newTickers.some(ticker => !subscribedTickers.has(ticker)) || 
+        currentTickers.some(ticker => !allWatchlistSecurities.has(ticker));
       
-      // Find tickers to unsubscribe from (in current subscriptions but not in new list)
-      const tickersToUnsubscribe = currentTickers.filter(ticker => !allWatchlistSecurities.has(ticker));
-      
-      // Update subscriptions
-      if (tickersToSubscribe.length > 0 && webSocketService) {
-        console.log('Subscribing to tickers:', tickersToSubscribe);
-        webSocketService.subscribe(tickersToSubscribe);
+      // Only update subscriptions if there are actual changes
+      if (hasChanges && webSocketService) {
+        // Find tickers to subscribe to (in new list but not in current subscriptions)
+        const tickersToSubscribe = newTickers.filter(ticker => !subscribedTickers.has(ticker));
+        
+        // Find tickers to unsubscribe from (in current subscriptions but not in new list)
+        const tickersToUnsubscribe = currentTickers.filter(ticker => !allWatchlistSecurities.has(ticker));
+        
+        // Update subscriptions
+        if (tickersToSubscribe.length > 0) {
+          console.log('Subscribing to tickers:', tickersToSubscribe);
+          webSocketService.subscribe(tickersToSubscribe);
+        }
+        
+        if (tickersToUnsubscribe.length > 0) {
+          console.log('Unsubscribing from tickers:', tickersToUnsubscribe);
+          webSocketService.unsubscribe(tickersToUnsubscribe);
+        }
+        
+        // Update the state with the new set of subscribed tickers
+        setSubscribedTickers(allWatchlistSecurities);
       }
-      
-      if (tickersToUnsubscribe.length > 0 && webSocketService) {
-        console.log('Unsubscribing from tickers:', tickersToUnsubscribe);
-        webSocketService.unsubscribe(tickersToUnsubscribe);
-      }
-      
-      // Update the state with the new set of subscribed tickers
-      setSubscribedTickers(allWatchlistSecurities);
     } else if (subscribedTickers.size > 0 && webSocketService) {
       // If there are no watchlists but we have subscriptions, unsubscribe from all
       webSocketService.unsubscribe([...subscribedTickers]);
@@ -123,9 +131,9 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
     setTimeout(() => setMessage(null), 3000);
   };
 
-  const handleDeleteWatchlist = async (watchlistId) => {
-    if (confirmDelete === watchlistId) {
-      const success = await onDeleteWatchlist(watchlistId);
+  const handleDeleteWatchlist = async () => {
+    if (watchlistToDelete) {
+      const success = await onDeleteWatchlist(watchlistToDelete.id);
       
       if (success) {
         setMessage({ type: 'success', text: 'Watchlist deleted successfully' });
@@ -134,11 +142,8 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
         setMessage({ type: 'error', text: 'Failed to delete watchlist' });
       }
       
-      setConfirmDelete(null);
+      setWatchlistToDelete(null);
       setTimeout(() => setMessage(null), 3000);
-    } else {
-      setConfirmDelete(watchlistId);
-      setTimeout(() => setConfirmDelete(null), 3000);
     }
   };
 
@@ -194,6 +199,31 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
         </form>
       )}
       
+      {/* Delete Confirmation Modal */}
+      {watchlistToDelete && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <h3>Delete Watchlist</h3>
+            <p>Are you sure you want to delete the watchlist "{watchlistToDelete.name}"?</p>
+            <p className="warning-text">This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button 
+                className="cancel-btn"
+                onClick={() => setWatchlistToDelete(null)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="confirm-delete-btn"
+                onClick={handleDeleteWatchlist}
+              >
+                Delete Watchlist
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {watchlists.length === 0 ? (
         <p className="no-watchlists">You don't have any watchlists yet. Create one to get started!</p>
       ) : (
@@ -209,15 +239,6 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
                   <span className="toggle-icon">
                     {activeWatchlist === watchlist.id ? '▼' : '▶'}
                   </span>
-                  <button 
-                    className={`delete-watchlist-btn ${confirmDelete === watchlist.id ? 'confirm' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteWatchlist(watchlist.id);
-                    }}
-                  >
-                    {confirmDelete === watchlist.id ? 'Confirm Delete' : 'Delete'}
-                  </button>
                 </div>
               </div>
               
@@ -226,6 +247,15 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
                   {watchlist.description && (
                     <p className="watchlist-description">{watchlist.description}</p>
                   )}
+                  
+                  <div className="watchlist-management">
+                    <button 
+                      className="delete-watchlist-btn"
+                      onClick={() => setWatchlistToDelete(watchlist)}
+                    >
+                      <span className="delete-icon">🗑️</span> Delete Watchlist
+                    </button>
+                  </div>
                   
                   {watchlist.securities.length === 0 ? (
                     <p className="empty-watchlist">This watchlist is empty. Add securities to get started!</p>

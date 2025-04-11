@@ -86,30 +86,6 @@ function App() {
     }
   };
 
-  // Subscribe to securities in watchlists
-  useEffect(() => {
-    if (user && watchlists.length > 0) {
-      // Get all unique securities from watchlists
-      const allWatchlistSecurities = new Set();
-      watchlists.forEach(watchlist => {
-        watchlist.securities.forEach(securityId => {
-          const security = securities.find(s => s.id === securityId);
-          if (security) {
-            allWatchlistSecurities.add(security.ticker);
-          }
-        });
-      });
-      
-      // Subscribe to all securities in watchlists
-      if (allWatchlistSecurities.size > 0) {
-        webSocketService.subscribe([...allWatchlistSecurities]);
-      }
-      
-      // Add this console log to debug
-      console.log('Subscribed to securities:', [...allWatchlistSecurities]);
-    }
-  }, [user, watchlists, securities]);
-
   // Setup WebSocket handlers for price updates
   useEffect(() => {
     if (user && securities.length > 0) {
@@ -211,6 +187,31 @@ function App() {
     }
   };
 
+  const deleteWatchlist = async (watchlistId) => {
+    try {
+      console.log(`Sending DELETE request to: http://localhost:8000/watchlists/${watchlistId}/`);
+      const response = await fetch(`http://localhost:8000/watchlists/${watchlistId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${user.id}` // Using user ID as a simple token
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Delete response not OK:', response.status, response.statusText);
+        throw new Error('Failed to delete watchlist');
+      }
+      
+      // Refresh watchlists after deleting
+      fetchWatchlists();
+      return true;
+    } catch (err) {
+      console.error('Error deleting watchlist:', err);
+      return false;
+    }
+  };
+
   return (
     <UserContext.Provider value={value}>
       <div className="app">
@@ -225,7 +226,7 @@ function App() {
             {loading && <div className="loading">Loading data...</div>}
             {error && <div className="error-message">{error}</div>}
             
-            <div className="data-controls">
+            {/* <div className="data-controls">
               <button className="refresh-button" onClick={fetchData} disabled={loading}>
                 Refresh Data
               </button>
@@ -234,7 +235,7 @@ function App() {
                   Last updated: {lastUpdated.toLocaleTimeString()}
                 </span>
               )}
-            </div>
+            </div> */}
             
             <div className="watchlist-container">
               <div className="securities-panel">
@@ -253,6 +254,8 @@ function App() {
                   securities={securities}
                   onRemoveFromWatchlist={removeFromWatchlist}
                   onCreateWatchlist={createWatchlist}
+                  onDeleteWatchlist={deleteWatchlist}
+                  webSocketService={webSocketService}
                 />
               </div>
             </div>
