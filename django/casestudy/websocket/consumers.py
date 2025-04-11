@@ -77,7 +77,7 @@ async def listen_for_updates():
                     message_data = json.loads(message['data'].decode('utf-8'))
                     price = message_data.get('price')
                     
-                    logger.debug(f"Processing price update for {ticker}: {price}")
+                    logger.debug(f"consumer Processing price update for {ticker}: {price}")
                     
                     # Send update to all consumers subscribed to this ticker
                     if ticker in security_subscribers and price is not None:

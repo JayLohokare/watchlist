@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 ALLOW_SAME_PRICE = True
 
+AUTO_UPDATE_PRICES = True
+
 class Command(BaseCommand):
     help = 'Makes recurring API calls to Albert stock APIs at specified intervals'
     
@@ -175,6 +177,9 @@ class Command(BaseCommand):
                             "value": price
                         }
                     )
+
+                    if AUTO_UPDATE_PRICES:
+                        price = price + 1
                     
                     # Publish update if price changed
                     if current_price is None or current_price != price or ALLOW_SAME_PRICE:

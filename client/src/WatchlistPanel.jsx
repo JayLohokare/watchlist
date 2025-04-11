@@ -1,101 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import './WatchlistPanel.css';
 import './priceFlash.css';
+import { useSecurities } from './store/SecuritiesStore';
+import { usePriceAnimation } from './hooks/usePriceAnimation';
 
-export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, onCreateWatchlist, onDeleteWatchlist, webSocketService }) {
+export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, onCreateWatchlist, onDeleteWatchlist }) {
   const [activeWatchlist, setActiveWatchlist] = useState(null);
   const [newWatchlistName, setNewWatchlistName] = useState('');
   const [newWatchlistDesc, setNewWatchlistDesc] = useState('');
   const [message, setMessage] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [watchlistToDelete, setWatchlistToDelete] = useState(null);
-  const [flashingPrices, setFlashingPrices] = useState({});
-  const [subscribedTickers, setSubscribedTickers] = useState(new Set());
   
-  // Store previous securities for comparison
-  const prevSecuritiesRef = useRef({});
+  // Use the price animation hook
+  const { getPriceClassName } = usePriceAnimation(securities);
   
-  // Check for price changes and trigger flash animation
-  useEffect(() => {
-    const newFlashingState = {};
-    
-    securities.forEach(security => {
-      const prevSecurity = prevSecuritiesRef.current[security.id];
-      if (prevSecurity && prevSecurity.last_price !== security.last_price) {
-        newFlashingState[security.id] = true;
-      }
-    });
-    
-    if (Object.keys(newFlashingState).length > 0) {
-      setFlashingPrices(newFlashingState);
-      
-      // Remove flash after animation completes
-      const timer = setTimeout(() => {
-        setFlashingPrices({});
-      }, 600);
-      
-      return () => clearTimeout(timer);
-    }
-    
-    // Update previous securities reference
-    const securityMap = {};
-    securities.forEach(security => {
-      securityMap[security.id] = { ...security };
-    });
-    prevSecuritiesRef.current = securityMap;
-  }, [securities]);
-
-  useEffect(() => {
-    if (watchlists.length > 0 && securities.length > 0) {
-      // Get all unique securities from watchlists
-      const allWatchlistSecurities = new Set();
-      watchlists.forEach(watchlist => {
-        watchlist.securities.forEach(securityId => {
-          const security = securities.find(s => s.id === securityId);
-          if (security) {
-            allWatchlistSecurities.add(security.ticker);
-          }
-        });
-      });
-      
-      // Convert to arrays for easier comparison
-      const newTickers = [...allWatchlistSecurities];
-      const currentTickers = [...subscribedTickers];
-      
-      // Check if the subscriptions have actually changed
-      const hasChanges = 
-        newTickers.some(ticker => !subscribedTickers.has(ticker)) || 
-        currentTickers.some(ticker => !allWatchlistSecurities.has(ticker));
-      
-      // Only update subscriptions if there are actual changes
-      if (hasChanges && webSocketService) {
-        // Find tickers to subscribe to (in new list but not in current subscriptions)
-        const tickersToSubscribe = newTickers.filter(ticker => !subscribedTickers.has(ticker));
-        
-        // Find tickers to unsubscribe from (in current subscriptions but not in new list)
-        const tickersToUnsubscribe = currentTickers.filter(ticker => !allWatchlistSecurities.has(ticker));
-        
-        // Update subscriptions
-        if (tickersToSubscribe.length > 0) {
-          console.log('Subscribing to tickers:', tickersToSubscribe);
-          webSocketService.subscribe(tickersToSubscribe);
-        }
-        
-        if (tickersToUnsubscribe.length > 0) {
-          console.log('Unsubscribing from tickers:', tickersToUnsubscribe);
-          webSocketService.unsubscribe(tickersToUnsubscribe);
-        }
-        
-        // Update the state with the new set of subscribed tickers
-        setSubscribedTickers(allWatchlistSecurities);
-      }
-    } else if (subscribedTickers.size > 0 && webSocketService) {
-      // If there are no watchlists but we have subscriptions, unsubscribe from all
-      webSocketService.unsubscribe([...subscribedTickers]);
-      setSubscribedTickers(new Set());
-    }
-  }, [watchlists, securities, subscribedTickers, webSocketService]);
-
   const handleCreateWatchlist = async (e) => {
     e.preventDefault();
     
@@ -155,6 +74,10 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
   const getSecurityDetails = (securityId) => {
     return securities.find(s => s.id === securityId) || null;
   };
+
+  useEffect(() => {
+    console.log('Securities updated in WatchlistPanel:', securities);
+  }, [securities]);
 
   return (
     <div className="watchlist-panel">
@@ -274,18 +197,11 @@ export function WatchlistPanel({ watchlists, securities, onRemoveFromWatchlist, 
                           const security = getSecurityDetails(securityId);
                           if (!security) return null;
                           
-                          // Apply flash animation class based on flashingPrices state
-                          const priceClassName = flashingPrices[securityId] 
-                            ? security.last_price > (prevSecuritiesRef.current[securityId]?.last_price || 0)
-                              ? 'price-up'
-                              : 'price-down'
-                            : '';
-                          
                           return (
                             <tr key={securityId}>
                               <td>{security.ticker}</td>
                               <td>{security.name}</td>
-                              <td className={priceClassName}>
+                              <td className={getPriceClassName(securityId)}>
                                 {security.last_price ? `$${security.last_price.toFixed(2)}` : 'N/A'}
                               </td>
                               <td>

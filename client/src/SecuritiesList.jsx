@@ -1,32 +1,52 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import './SecuritiesList.css';
 import './priceFlash.css';
+import { useSecurities } from './store/SecuritiesStore';
+import { usePriceAnimation } from './hooks/usePriceAnimation';
 
-export function SecuritiesList({ securities, watchlists, onAddToWatchlist }) {
+export function SecuritiesList({ watchlists, onAddToWatchlist }) {
+  const { securities } = useSecurities();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWatchlists, setSelectedWatchlists] = useState({});
   const [message, setMessage] = useState(null);
-  const [flashingPrices, setFlashingPrices] = useState({});
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: 'ascending'
   });
   
+  // Use the price animation hook
+  const { getPriceClassName } = usePriceAnimation(securities);
+  
   // Store previous securities for comparison
   const prevSecuritiesRef = useRef({});
+  
+  // Memoize the security map update to prevent unnecessary re-renders
+  const updatePrevSecuritiesRef = useCallback(() => {
+    const securityMap = {};
+    securities.forEach(security => {
+      securityMap[security.id] = { ...security };
+    });
+    prevSecuritiesRef.current = securityMap;
+  }, [securities]);
   
   // Check for price changes and trigger flash animation
   useEffect(() => {
     const newFlashingState = {};
+    let hasChanges = false;
     
     securities.forEach(security => {
       const prevSecurity = prevSecuritiesRef.current[security.id];
       if (prevSecurity && prevSecurity.last_price !== security.last_price) {
-        newFlashingState[security.id] = true;
+        // Store both the fact that it's flashing and the direction
+        newFlashingState[security.id] = {
+          flashing: true,
+          direction: security.last_price > prevSecurity.last_price ? 'up' : 'down'
+        };
+        hasChanges = true;
       }
     });
     
-    if (Object.keys(newFlashingState).length > 0) {
+    if (hasChanges) {
       setFlashingPrices(newFlashingState);
       
       // Remove flash after animation completes
@@ -34,16 +54,17 @@ export function SecuritiesList({ securities, watchlists, onAddToWatchlist }) {
         setFlashingPrices({});
       }, 600);
       
+      // Update previous securities reference
+      updatePrevSecuritiesRef();
+      
       return () => clearTimeout(timer);
+    } else {
+      // Only update the reference if it's the first render or if needed
+      if (Object.keys(prevSecuritiesRef.current).length === 0) {
+        updatePrevSecuritiesRef();
+      }
     }
-    
-    // Update previous securities reference
-    const securityMap = {};
-    securities.forEach(security => {
-      securityMap[security.id] = { ...security };
-    });
-    prevSecuritiesRef.current = securityMap;
-  }, [securities]);
+  }, [securities, updatePrevSecuritiesRef]);
 
   // Filter securities based on search term
   const filteredSecurities = securities.filter(security => 
@@ -118,6 +139,9 @@ export function SecuritiesList({ securities, watchlists, onAddToWatchlist }) {
     }));
   };
 
+  // Add this state
+  const [flashingPrices, setFlashingPrices] = useState({});
+
   return (
     <div className="securities-list">
       <div className="search-container">
@@ -159,7 +183,7 @@ export function SecuritiesList({ securities, watchlists, onAddToWatchlist }) {
               <tr key={security.id}>
                 <td>{security.ticker}</td>
                 <td>{security.name}</td>
-                <td className={flashingPrices[security.id] ? 'price-flash' : ''}>
+                <td className={getPriceClassName(security.id)}>
                   ${security.last_price ? security.last_price.toFixed(2) : 'N/A'}
                 </td>
                 <td>
