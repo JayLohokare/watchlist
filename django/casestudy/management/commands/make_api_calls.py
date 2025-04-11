@@ -8,6 +8,7 @@ from datetime import datetime
 from django.db import transaction
 from decimal import Decimal
 from casestudy.models import Security, SecurityPriceHistory
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ class Command(BaseCommand):
                     )
 
                     if AUTO_UPDATE_PRICES:
-                        price = current_price + 1
+                        price = current_price + random.randint(-10, 10)
                     
                     # Publish update if price changed
                     if current_price is None or current_price != price or ALLOW_SAME_PRICE:
